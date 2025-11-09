@@ -1,0 +1,56 @@
+name: CI Matrix Build
+
+# Triggers the workflow on push or pull request events but only for the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    # Run this job on the latest Ubuntu runner
+    runs-on: ubuntu-latest
+
+    strategy:
+      # Define the build matrix
+      matrix:
+        # We will create 3 parallel jobs for these Node.js versions
+        node-version: [18.x, 20.x, 22.x] 
+
+    steps:
+      # 1. Check out the repository code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # 2. Set up the specific Node.js version for this matrix job
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      # 3. A step with the required identifier
+      - name: matrix-1dda613 Display build info
+        run: |
+          echo "Building for Node.js version: ${{ matrix.node-version }}"
+          node -v
+          npm -v
+
+      # 4. Generate a unique, non-empty build artifact
+      - name: Generate build artifact
+        run: |
+          # Create a directory for the build output
+          mkdir -p build
+          # Create a unique, non-empty text file
+          echo "Build output for Node ${{ matrix.node-version }} generated on $(date)" > build/output.txt
+          echo "File content:"
+          cat build/output.txt
+
+      # 5. Upload the artifact using the specified prefix and unique variant name
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Name the artifact with the required prefix and matrix variant
+          name: build-1dda613-node${{ matrix.node-version }}
+          # Path to the file(s) to upload
+          path: build/output.txt
